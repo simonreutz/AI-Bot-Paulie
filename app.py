@@ -82,7 +82,37 @@ if uploaded_file:
 top_plan = score_df.sort_values("Fit Score", ascending=False).iloc[0]
 plan_name = top_plan["Training Plan"]
 fit_score = top_plan["Fit Score"]
+st.markdown("### 🎯 Target Plan Guidance")
+target_plan_name = st.selectbox(
+    "Which training philosophy would you like to follow?",
+    ["Hal Higdon", "Hansons", "Jack Daniels", "Renato Canova", "Nike"]
+)
+target_plan = [p for p in plans if p["source"] == target_plan_name][0]
+target_sessions = target_plan["session_types"]
 
+advice = []
+
+# Weekly session volume
+if user_week["total_sessions"] < target_plan["weekly_sessions_avg"]:
+    advice.append(f"📅 Try to increase your weekly runs from {user_week['total_sessions']} to around {target_plan['weekly_sessions_avg']}.")
+
+# Missing session types
+for stype, req in target_sessions.items():
+    actual = user_week["session_types"].get(stype, 0)
+    if actual < req:
+        advice.append(f"➕ Add more `{stype}` sessions (target: {req}/week, you did: {actual}).")
+
+# Long run distance
+if user_week["long_run_distance_km"] < target_plan["long_run_max_km"] * 0.85:
+    advice.append(f"🏃‍♂️ Your long run was {user_week['long_run_distance_km']} km — aim for {target_plan['long_run_max_km']} km to match {target_plan_name}.")
+
+# Display advice
+if advice:
+    st.markdown("#### 📋 Weekly Coaching Tips")
+    for tip in advice:
+        st.markdown(tip)
+else:
+    st.success("✅ You're already following this plan's structure closely!")
 # Custom messages per plan
 feedback_messages = {
     "Hal Higdon": "You're progressing like a classic runner — steady long runs and consistent weekly volume. Keep that rhythm going and consider mixing in some pace runs!",
