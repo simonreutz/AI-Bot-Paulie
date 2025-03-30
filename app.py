@@ -1,3 +1,4 @@
+from best_fit_analysis import compare_user_to_all_plans
 from training_plans import get_all_plans
 import streamlit as st
 import pandas as pd
@@ -76,3 +77,20 @@ if uploaded_file:
 
         fields = extract_fields_from_text(text)
         display_extracted_data(fields)
+user_week = {
+    "total_sessions": 5,
+    "session_types": {
+        "easy": 2,
+        "tempo": 1,
+        "long_run": 1,
+        "speed": 1
+    },
+    "long_run_distance_km": 28
+}
+st.header("🧠 Best-Fit Marathon Plan Analysis")
+plans = get_all_plans()
+plan_scores = compare_user_to_all_plans(user_week, plans)
+
+import pandas as pd
+score_df = pd.DataFrame(plan_scores.items(), columns=["Training Plan", "Fit Score"])
+st.dataframe(score_df)
