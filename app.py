@@ -78,6 +78,27 @@ if uploaded_file:
 
         score_df = pd.DataFrame(plan_scores.items(), columns=["Training Plan", "Fit Score"])
         st.dataframe(score_df)
+        # Identify top match
+top_plan = score_df.sort_values("Fit Score", ascending=False).iloc[0]
+plan_name = top_plan["Training Plan"]
+fit_score = top_plan["Fit Score"]
+
+# Custom messages per plan
+feedback_messages = {
+    "Hal Higdon": "You're progressing like a classic runner — steady long runs and consistent weekly volume. Keep that rhythm going and consider mixing in some pace runs!",
+    "Hansons": "Your training reflects Hansons' philosophy — shorter long runs but high weekly consistency. Great job handling the workload!",
+    "Jack Daniels": "You're running with structure and variety — very Daniels-style. Stay mindful of pacing based on effort or VDOT zones.",
+    "Renato Canova": "You're touching elite territory. Canova-style training demands intensity and variation — make sure recovery is in check.",
+    "Nike": "You’re training smart and balanced. The Nike plan is ideal for intermediate runners — keep building mileage with purpose."
+}
+
+# Show interpretation
+st.markdown(f"""
+### 🧠 Recommendation
+🏁 **Most aligned plan:** `{plan_name}`  
+📊 **Fit Score:** `{fit_score:.2f}`  
+💬 {feedback_messages.get(plan_name, "Keep it up — great structure this week!")}
+""")
 
     elif "image" in file_type:
         img = Image.open(uploaded_file)
