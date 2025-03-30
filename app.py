@@ -94,3 +94,30 @@ plan_scores = compare_user_to_all_plans(user_week, plans)
 import pandas as pd
 score_df = pd.DataFrame(plan_scores.items(), columns=["Training Plan", "Fit Score"])
 st.dataframe(score_df)
+# Filter this week's data
+this_week_data = df[
+    (df["Activity Date"] >= start_of_week) &
+    (df["Activity Date"] <= end_of_week)
+]
+
+# Count session types
+session_counts = this_week_data["Session Type"].value_counts().to_dict()
+
+# Get longest run distance
+longest_run_km = this_week_data["Distance"].max()
+
+# Build user_week summary
+user_week = {
+    "total_sessions": len(this_week_data),
+    "session_types": session_counts,
+    "long_run_distance_km": longest_run_km
+}
+
+# Compare with plans
+st.header("🧠 Best-Fit Marathon Plan Analysis")
+plans = get_all_plans()
+plan_scores = compare_user_to_all_plans(user_week, plans)
+
+import pandas as pd
+score_df = pd.DataFrame(plan_scores.items(), columns=["Training Plan", "Fit Score"])
+st.dataframe(score_df)
