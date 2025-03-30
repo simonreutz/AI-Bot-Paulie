@@ -19,6 +19,24 @@ if file:
 
     # Feature engineering
     df['Average Pace_min_per_km'] = df['Elapsed Time'] / 60 / df['Distance']
+
+    # If Session Type not in file, classify automatically
+    if 'Session Type' not in df.columns:
+        def classify_run(row):
+            hr = row['Average Heart Rate']
+            dist = row['Distance']
+            pace = row['Average Pace_min_per_km']
+            max_hr = 190
+            if dist < 9 and pace < 4.8 and hr > 165:
+                return 'Interval Run'
+            elif dist > 10 and hr >= 165:
+                return 'Long Run'
+            elif dist >= 8 and pace < 5.5 and hr > 149:
+                return 'Fast Distance Run'
+            else:
+                return 'Easy Run'
+        df['Session Type'] = df.apply(classify_run, axis=1)
+
     df['Session Type_encoded'] = df['Session Type'].astype('category').cat.codes
 
     st.success("✅ Data uploaded and processed successfully.")
