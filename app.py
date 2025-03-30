@@ -1,62 +1,77 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import easyocr
-from io import BytesIO
+import pytesseract
 from PIL import Image
+import io
+import re
 
-st.set_page_config(page_title="Marathon AI Coach", layout="centered")
-st.title("🏃‍♂️ Marathon AI Coach")
-st.write("Upload your Strava data or manually input a run to receive intelligent training insights.")
+st.set_page_config(page_title="Marathon AI Coach", page_icon="🏃")
+st.title("🏃 Marathon AI Coach")
+st.subheader("Upload your Strava data and receive intelligent training insights.")
 
-# File upload section
-uploaded_file = st.file_uploader("📁 Upload your Strava CSV file", type=["csv"])
+uploaded_file = st.file_uploader("📂 Upload your Strava CSV or Screenshot", type=["csv", "png", "jpg", "jpeg"])
 
-# Manual KPI insertion form
-with st.expander("📝 Or manually enter a single run" ):
-    with st.form("manual_form"):
-        manual_date = st.date_input("Activity Date")
-        distance = st.number_input("Distance (km)", min_value=0.0, format="%.2f")
-        time_minutes = st.number_input("Elapsed Time (min)", min_value=0.0, format="%.2f")
-        pace = st.number_input("Average Pace (min/km)", min_value=0.0, format="%.2f")
-        avg_hr = st.number_input("Average Heart Rate", min_value=0)
-        max_hr = st.number_input("Max Heart Rate", min_value=0)
-        session_type = st.selectbox("Session Type", ["Easy Run", "Interval Run", "Long Run", "Fast Distance Run"])
-        submitted = st.form_submit_button("Add Run")
+# --- OCR-Based Parsing Function ---
+def extract_fields_from_text(text):
+    fields = {
+        "Distance": None,
+        "Average Pace": None,
+        "Elapsed Time": None,
+        "Calories": None,
+        "Elevation": None
+    }
 
-    if submitted:
-        st.success("Run added!")
-        manual_df = pd.DataFrame({
-            "Activity Date": [manual_date],
-            "Distance": [distance],
-            "Elapsed Time": [time_minutes],
-            "Pace_min_per_km": [pace],
-            "Average Heart Rate": [avg_hr],
-            "Max Heart Rate": [max_hr],
-            "Session Type": [session_type]
-        })
-        st.dataframe(manual_df)
+    # Distance (e.g., 12.60 km or 12,60 km)
+    dist_match = re.search(r"(\d+[.,]\d+)\s?km", text, re.IGNORECASE)
+    if dist_match:
+        fields["Distance"] = float(dist_match.group(1).replace(",", "."))
 
-# Screenshot OCR extraction
-with st.expander("🖼️ Upload a Strava Screenshot (OCR-based)"):
-    screenshot = st.file_uploader("Upload PNG or JPG screenshot", type=["png", "jpg", "jpeg"], key="ocr")
-    if screenshot:
-        image = Image.open(BytesIO(screenshot.read()))
-        st.image(image, caption="Uploaded Screenshot", use_column_width=True)
+    # Pace (e.g., 5:40 /km)
+    pace_match = re.search(r"(\d{1,2}:\d{2})\s*/km", text)
+    if pace_match:
+        min, sec = map(int, pace_match.group(1).split(":"))
+        fields["Average Pace"] = round(min + sec / 60, 2)
 
-        reader = easyocr.Reader(['en'], gpu=False)
-        with st.spinner("🔍 Extracting data with OCR..."):
-            results = reader.readtext(np.array(image), detail=0)
+    # Elapsed Time (e.g., 1:11:31)
+    time_match = re.search(r"(\d{1,2}:\d{2}:\d{2})", text)
+    if time_match:
+        h, m, s = map(int, time_match.group(1).split(":"))
+        fields["Elapsed Time"] = round(h * 60 + m + s / 60, 2)
 
-        st.subheader("🔎 OCR Extracted Text")
-        for line in results:
-            st.write(line)
+    # Calories (e.g., 952)
+    cal_match = re.search(r"(\d+)\s*K?cal", text, re.IGNORECASE)
+    if cal_match:
+        fields["Calories"] = int(cal_match.group(1))
 
-        # Placeholder: Extract structured data (e.g., regex on `results`) in future steps
-        st.info("🧠 In future, we will parse these results into structured KPIs automatically.")
+    # Elevation (e.g., 74 m)
+    elev_match = re.search(r"(\d+)\s?m", text)
+    if elev_match:
+        fields["Elevation"] = int(elev_match.group(1))
 
-# If CSV uploaded, show preview
+    return fields
+
+# --- Display Results ---
+def display_extracted_data(fields):
+    st.subheader("📊 Extracted Run Summary")
+    for k, v in fields.items():
+        st.write(f"**{k}:** {v if v is not None else 'Not Found'}")
+
+# --- Main Logic ---
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    st.success("CSV uploaded successfully!")
-    st.dataframe(df.head())
+    file_type = uploaded_file.type
+
+    if "csv" in file_type:
+        df = pd.read_csv(uploaded_file)
+        st.dataframe(df.head())
+
+    elif "image" in file_type:
+        img = Image.open(uploaded_file)
+        st.image(img, caption="Uploaded Screenshot", use_column_width=True)
+
+        # OCR extract
+        text = pytesseract.image_to_string(img)
+        st.subheader("🔎 OCR Extracted Text")
+        st.text(text)
+
+        fields = extract_fields_from_text(text)
+        display_extracted_data(fields)
