@@ -15,6 +15,14 @@ if file:
     df = pd.read_csv(file)
     df['Activity Date'] = pd.to_datetime(df['Activity Date'])
     df = df[df['Distance'] > 0]
+
+    # --- Validate Required Columns ---
+    required_columns = ['Distance', 'Elapsed Time', 'Activity Date', 'Average Heart Rate', 'Max Heart Rate']
+    missing = [col for col in required_columns if col not in df.columns]
+    if missing:
+        st.error(f"❗ Missing required columns in your upload: {', '.join(missing)}. Please check your Strava export settings.")
+        st.stop()
+
     df = df.dropna(subset=['Average Heart Rate'])
 
     # Feature engineering
@@ -26,7 +34,6 @@ if file:
             hr = row['Average Heart Rate']
             dist = row['Distance']
             pace = row['Average Pace_min_per_km']
-            max_hr = 190
             if dist < 9 and pace < 4.8 and hr > 165:
                 return 'Interval Run'
             elif dist > 10 and hr >= 165:
