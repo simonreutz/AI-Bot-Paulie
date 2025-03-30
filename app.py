@@ -1,3 +1,4 @@
+from training_plans import get_all_plans
 import streamlit as st
 import pandas as pd
 import pytesseract
