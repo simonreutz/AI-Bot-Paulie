@@ -131,11 +131,9 @@ if session_data:
     st.markdown("---")
     st.caption("🚧 More advanced feedback with zones, HR, and fitness prediction coming soon.")
 # --- ML-Based Plan Adherence Score ---
-from adherence_scorer import predict_adherence
-
 if isinstance(session_data, dict):
     actual_summary = {
-        "sessions_completed": 1,
+        "sessions_completed": 1,  # Later: count multiple sessions
         "tempo_done": 1 if "tempo" in session_data.get("type", "").lower() else 0,
         "longest_run_km": session_data.get("distance_km", 0),
     }
@@ -151,7 +149,6 @@ if isinstance(session_data, dict):
         st.info("Decent effort! Aim to hit long runs and tempo sessions.")
     else:
         st.success("Great job following the plan!")
-
 score = predict_adherence(selected_plan, actual_summary)
 
 st.subheader("📊 Plan Adherence Score")
