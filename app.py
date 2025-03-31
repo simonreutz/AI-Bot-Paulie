@@ -2,13 +2,13 @@ import streamlit as st
 from datetime import datetime
 import pandas as pd
 import requests
-from training_plans import training_plans  # Assumes this file contains your training plan dictionary
+from training_plans import training_plans  # ✅ This works now
 
 # ------------------------
 # OCR Microservice API Call
 # ------------------------
 def parse_ocr_image_with_api(image_file):
-    api_url = "https://ocr-service-uuy1.onrender.com"  # ⬅️ Replace this!
+    api_url = "https://YOUR-OCR-RENDER-URL.onrender.com/ocr"  # ⬅️ Replace with your deployed Render URL
     files = {'image': image_file}
     try:
         response = requests.post(api_url, files=files)
@@ -31,8 +31,6 @@ st.title("🏃 Marathon AI Coach - MVP")
 st.sidebar.header("Training Setup")
 plan_names = [plan["source"] for plan in training_plans]
 selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
-
-# Fetch selected plan object
 selected_plan = next(plan for plan in training_plans if plan["source"] == selected_plan_name)
 training_week = st.sidebar.number_input("Which week are you on?", min_value=1, max_value=24, value=1)
 
@@ -72,11 +70,11 @@ else:
 
 # --- Feedback Logic ---
 if session_data:
-  expected = f"{selected_plan['weekly_sessions_avg']} sessions this week (e.g. {selected_plan['session_types']})"
+    expected = f"{selected_plan['weekly_sessions_avg']} sessions/week (e.g. {selected_plan['session_types']})"
     actual = f"{session_data.get('distance_km', '?')}km {session_data.get('type', '?')} in {session_data.get('duration_min', '?')} min"
 
     st.subheader("🔍 Training Plan Alignment")
-    st.write(f"**Week {training_week} - {selected_plan}**")
+    st.write(f"**Week {training_week} - {selected_plan_name}**")
     st.markdown(f"**Planned:** {expected}")
     st.markdown(f"**Your Session:** {actual}")
 
