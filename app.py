@@ -61,6 +61,15 @@ if "strava_token" in st.session_state:
             st.caption(f"🧠 Interpreted as: {a['type']}")
     else:
         st.warning("No recent running activities found.")
+    activities = get_recent_activities(st.session_state.strava_token)
+
+    if activities:
+        for a in activities:
+            st.markdown(f"**{a['date']} – {a['name']}**")
+            st.write(f"🛣 {a['distance_km']} km in {a['duration_min']} min, pace ≈ {round(a['duration_min'] / a['distance_km'], 2)} min/km")
+            st.caption(f"🧠 Interpreted as: {a['type']}")
+    else:
+        st.warning("No recent running activities found.")
 st.sidebar.header("Training Setup")
 plan_names = [plan["source"] for plan in training_plans]
 selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
