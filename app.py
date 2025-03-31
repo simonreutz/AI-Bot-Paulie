@@ -29,7 +29,11 @@ st.title("🏃 Marathon AI Coach - MVP")
 
 # --- Sidebar Config ---
 st.sidebar.header("Training Setup")
-selected_plan = st.sidebar.selectbox("Choose a Training Plan", list(training_plans.keys()))
+plan_names = [plan["source"] for plan in training_plans]
+selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
+
+# Fetch selected plan object
+selected_plan = next(plan for plan in training_plans if plan["source"] == selected_plan_name)
 training_week = st.sidebar.number_input("Which week are you on?", min_value=1, max_value=24, value=1)
 
 # --- Main Section ---
@@ -68,7 +72,7 @@ else:
 
 # --- Feedback Logic ---
 if session_data:
-    expected = training_plans[selected_plan].get(training_week, "Rest week or free choice")
+  expected = f"{selected_plan['weekly_sessions_avg']} sessions this week (e.g. {selected_plan['session_types']})"
     actual = f"{session_data.get('distance_km', '?')}km {session_data.get('type', '?')} in {session_data.get('duration_min', '?')} min"
 
     st.subheader("🔍 Training Plan Alignment")
