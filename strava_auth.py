@@ -3,8 +3,8 @@ import requests
 import urllib
 
 # Set your Strava app credentials (store these securely later)
-CLIENT_ID = "YOUR_CLIENT_ID"         # ✅ Replace with the exact number string, e.g. "12345"
-CLIENT_SECRET = "YOUR_CLIENT_SECRET" # ✅ Replace with the real secret
+CLIENT_ID = "12345"  # From Strava Developer dashboard
+CLIENT_SECRET = "sk_xxxxxxx"  # Secret shown only once
 REDIRECT_URI = "https://your-app-name.streamlit.app"  # ✅ Must match Strava setup
 
 def get_strava_auth_url():
