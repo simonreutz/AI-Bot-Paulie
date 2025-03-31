@@ -5,6 +5,7 @@ import requests
 from training_plans import training_plans  # ✅ This works now
 from adherence_scorer import predict_adherence
 from strava_auth import get_strava_auth_url, exchange_code_for_token
+from strava_api import get_recent_activities
 # ------------------------
 # OCR Microservice API Call
 # ------------------------
@@ -49,6 +50,17 @@ if "code" in query_params and "strava_token" not in st.session_state:
             st.sidebar.error("❌ Strava auth failed.")
 elif "strava_token" in st.session_state:
     st.sidebar.success("✅ Connected to Strava")
+    if "strava_token" in st.session_state:
+    st.header("📥 Recent Strava Runs")
+    activities = get_recent_activities(st.session_state.strava_token)
+
+    if activities:
+        for a in activities:
+            st.markdown(f"**{a['date']} – {a['name']}**")
+            st.write(f"🛣 {a['distance_km']} km in {a['duration_min']} min, pace ≈ {round(a['duration_min'] / a['distance_km'], 2)} min/km")
+            st.caption(f"🧠 Interpreted as: {a['type']}")
+    else:
+        st.warning("No recent running activities found.")
 st.sidebar.header("Training Setup")
 plan_names = [plan["source"] for plan in training_plans]
 selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
