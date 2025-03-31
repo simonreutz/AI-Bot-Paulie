@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 from training_plans import training_plans  # ✅ This works now
 from adherence_scorer import predict_adherence
+from strava_auth import get_strava_auth_url, exchange_code_for_token
 # ------------------------
 # OCR Microservice API Call
 # ------------------------
@@ -28,6 +29,26 @@ st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach - MVP")
 
 # --- Sidebar Config ---
+st.sidebar.header("🔗 Strava Connection")
+
+# Step 1: If not connected, show login button
+if "strava_token" not in st.session_state:
+    auth_url = get_strava_auth_url()
+    st.sidebar.markdown(f"[Connect with Strava]({auth_url})", unsafe_allow_html=True)
+
+# Step 2: After redirect from Strava, capture ?code=...
+query_params = st.experimental_get_query_params()
+if "code" in query_params and "strava_token" not in st.session_state:
+    with st.spinner("Connecting to Strava..."):
+        auth_code = query_params["code"][0]
+        token_data = exchange_code_for_token(auth_code)
+        if "access_token" in token_data:
+            st.session_state.strava_token = token_data["access_token"]
+            st.sidebar.success("✅ Connected to Strava")
+        else:
+            st.sidebar.error("❌ Strava auth failed.")
+elif "strava_token" in st.session_state:
+    st.sidebar.success("✅ Connected to Strava")
 st.sidebar.header("Training Setup")
 plan_names = [plan["source"] for plan in training_plans]
 selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
