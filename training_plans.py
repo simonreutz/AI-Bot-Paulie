@@ -108,6 +108,5 @@ training_plans = [
 
 # Convert to DataFrame for overview
 df_plans = pd.DataFrame(training_plans)
-import ace_tools as tools; tools.display_dataframe_to_user(name="Structured Marathon Training Plans", dataframe=df_plans)
 def get_all_plans():
     return training_plans
