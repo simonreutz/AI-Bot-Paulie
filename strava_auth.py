@@ -4,7 +4,7 @@ import urllib
 
 CLIENT_ID = st.secrets["strava"]["client_id"]
 CLIENT_SECRET = st.secrets["strava"]["client_secret"]
-REDIRECT_URI = st.secrets["strava"]["redirect_uri"]
+REDIRECT_URI = "https://ai-bot-paulie.streamlit.app"
 
 def get_strava_auth_url():
     params = {
