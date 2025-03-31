@@ -50,7 +50,7 @@ if "code" in query_params and "strava_token" not in st.session_state:
             st.sidebar.error("❌ Strava auth failed.")
 elif "strava_token" in st.session_state:
     st.sidebar.success("✅ Connected to Strava")
-  if "strava_token" in st.session_state:
+if "strava_token" in st.session_state:
     st.header("📥 Recent Strava Runs")
     activities = get_recent_activities(st.session_state.strava_token)
 
