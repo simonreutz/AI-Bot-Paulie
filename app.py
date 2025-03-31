@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 import pandas as pd
 import requests
-from training_plans import training_plans  # ✅ This works now
+from training_plans import training_plans  
 from adherence_scorer import predict_adherence
 from strava_auth import get_strava_auth_url, exchange_code_for_token
 from strava_api import get_recent_activities
