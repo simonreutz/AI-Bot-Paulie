@@ -133,11 +133,24 @@ if session_data:
 # --- ML-Based Plan Adherence Score ---
 from adherence_scorer import predict_adherence
 
-actual_summary = {
-    "sessions_completed": 1,  # In future: track multiple sessions per week
-    "tempo_done": 1 if "tempo" in session_data.get("type", "").lower() else 0,
-    "longest_run_km": session_data.get("distance_km", 0),
-}
+if isinstance(session_data, dict):
+    actual_summary = {
+        "sessions_completed": 1,
+        "tempo_done": 1 if "tempo" in session_data.get("type", "").lower() else 0,
+        "longest_run_km": session_data.get("distance_km", 0),
+    }
+
+    score = predict_adherence(selected_plan, actual_summary)
+
+    st.subheader("📊 Plan Adherence Score")
+    st.metric(label="This Week", value=f"{score} %")
+
+    if score < 60:
+        st.warning("You're falling off the plan. Try to stick to your key sessions.")
+    elif score < 80:
+        st.info("Decent effort! Aim to hit long runs and tempo sessions.")
+    else:
+        st.success("Great job following the plan!")
 
 score = predict_adherence(selected_plan, actual_summary)
 
