@@ -1,26 +1,35 @@
+# strava_api.py
 import requests
+from datetime import datetime, timedelta
 
-def get_recent_activities(token, limit=10):
-    headers = {"Authorization": f"Bearer {token}"}
-    params = {"per_page": limit, "page": 1}
-    url = "https://www.strava.com/api/v3/athlete/activities"
-
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code != 200:
+def fetch_recent_activities(access_token: str, days: int = 7):
+    """Fetch activities from the last X days."""
+    after_timestamp = int((datetime.utcnow() - timedelta(days=days)).timestamp())
+    url = f"https://www.strava.com/api/v3/athlete/activities?after={after_timestamp}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print("Error fetching activities:", response.text)
         return []
 
-    activities = response.json()
-    runs = [a for a in activities if a["type"] == "Run"]
-    parsed = []
+def format_activities(raw_activities):
+    runs = []
+    for act in raw_activities:
+        if act["type"] != "Run":
+            continue
 
-    for run in runs:
-        parsed.append({
-            "name": run["name"],
-            "date": run["start_date_local"],
-            "distance_km": round(run["distance"] / 1000, 2),
-            "duration_min": round(run["elapsed_time"] / 60, 1),
-            "avg_speed_kmh": round(run["average_speed"] * 3.6, 2),
-            "type": "Long Run" if run["distance"] > 15 else "Easy Run"  # very basic type mapping
-        })
-
-    return parsed
+        distance_km = act["distance"] / 1000
+        duration_min = act["elapsed_time"] / 60
+        avg_pace = (duration_min / distance_km) if distance_km else 10
+        # Placeholder for pace variability
+        run = {
+            "distance_km": round(distance_km, 2),
+            "duration_min": round(duration_min, 1),
+            "avg_pace_min_per_km": round(avg_pace, 2),
+            "pace_std": 0.2  # stub value until pace samples available
+        }
+        runs.append(run)
+    return runs
