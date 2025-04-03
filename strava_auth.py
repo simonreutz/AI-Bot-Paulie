@@ -1,28 +1,32 @@
+# strava_auth.py
 import streamlit as st
 import requests
-import urllib
+import os
 
-CLIENT_ID = st.secrets["strava"]["client_id"]
-CLIENT_SECRET = st.secrets["strava"]["client_secret"]
-REDIRECT_URI = "https://ai-bot-paulie.streamlit.app"
+STRAVA_CLIENT_ID = st.secrets["STRAVA_CLIENT_ID"]
+STRAVA_CLIENT_SECRET = st.secrets["STRAVA_CLIENT_SECRET"]
+REDIRECT_URI = "http://localhost:8501"  # Change when deployed
 
-def get_strava_auth_url():
-    params = {
-        "client_id": CLIENT_ID,
-        "response_type": "code",
-        "redirect_uri": REDIRECT_URI,
-        "approval_prompt": "force",
-        "scope": "read,activity:read",
-    }
-    return f"https://www.strava.com/oauth/authorize?{urllib.parse.urlencode(params)}"
+AUTH_URL = (
+    f"https://www.strava.com/oauth/authorize?client_id={STRAVA_CLIENT_ID}"
+    f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=activity:read_all"
+)
 
-def exchange_code_for_token(code):
+def display_strava_login():
+    st.markdown("### Connect with Strava")
+    st.markdown(f"[Click here to authorize]({AUTH_URL})")
+
+def exchange_code_for_token(auth_code):
     token_url = "https://www.strava.com/oauth/token"
     payload = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "code": code,
-        "grant_type": "authorization_code",
+        "client_id": STRAVA_CLIENT_ID,
+        "client_secret": STRAVA_CLIENT_SECRET,
+        "code": auth_code,
+        "grant_type": "authorization_code"
     }
     response = requests.post(token_url, data=payload)
-    return response.json()
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error("Failed to exchange code for token")
+        return None
