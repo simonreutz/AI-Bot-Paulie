@@ -3,9 +3,9 @@ import streamlit as st
 import requests
 import os
 
-STRAVA_CLIENT_ID = st.secrets["STRAVA_CLIENT_ID"]
-STRAVA_CLIENT_SECRET = st.secrets["STRAVA_CLIENT_SECRET"]
-REDIRECT_URI = "http://localhost:8501"  # Change when deployed
+STRAVA_CLIENT_ID = st.secrets["strava"]["client_id"]
+STRAVA_CLIENT_SECRET = st.secrets["strava"]["client_secret"]
+REDIRECT_URI = st.secrets["strava"]["redirect_uri"]
 
 AUTH_URL = (
     f"https://www.strava.com/oauth/authorize?client_id={STRAVA_CLIENT_ID}"
