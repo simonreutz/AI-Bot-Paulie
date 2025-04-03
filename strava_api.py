@@ -24,12 +24,11 @@ def format_activities(raw_activities):
         distance_km = act["distance"] / 1000
         duration_min = act["elapsed_time"] / 60
         avg_pace = (duration_min / distance_km) if distance_km else 10
-        # Placeholder for pace variability
         run = {
             "distance_km": round(distance_km, 2),
             "duration_min": round(duration_min, 1),
             "avg_pace_min_per_km": round(avg_pace, 2),
-            "pace_std": 0.2  # stub value until pace samples available
+            "pace_std": 0.2  # stub for now
         }
         runs.append(run)
     return runs
