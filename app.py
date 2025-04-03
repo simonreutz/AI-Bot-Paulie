@@ -7,6 +7,7 @@ from strava_auth import display_strava_login, exchange_code_for_token
 from strava_api import fetch_recent_activities, format_activities
 from weekly_aggregator import aggregate_weekly_sessions
 from plan_detector import detect_best_plan_and_week
+from nutrition_tips import tips as nutrition_tips
 
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach – Smart Plan Detection MVP")
@@ -101,3 +102,19 @@ if actual_sessions.get("interval", 0) == 0 and plan_sessions.get("interval", 0) 
     feedback += "\nTry to complete your intervals next week — they’re important for speed and VO₂ max."
 
 st.success(feedback)
+
+# --- NUTRITION TIPS ---
+st.subheader("🍝 Nutrition Tips for Upcoming Key Sessions")
+
+# Count types across both weeks
+upcoming_counts = {}
+for week in next_weeks:
+    for session_type, count in week.items():
+        upcoming_counts[session_type] = upcoming_counts.get(session_type, 0) + count
+
+# Show tips for relevant session types
+for session_type, count in upcoming_counts.items():
+    if session_type in nutrition_tips:
+        st.markdown(f"### {session_type.replace('_', ' ').title()} ({count}x)")
+        st.markdown(f"- **Before**: {nutrition_tips[session_type]['pre']}")
+        st.markdown(f"- **After**: {nutrition_tips[session_type]['post']}")
