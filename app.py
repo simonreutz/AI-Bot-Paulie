@@ -127,7 +127,31 @@ if session_data:
     elif session_data.get('distance_km') and session_data['distance_km'] > 15:
         feedback += " Great endurance! Monitor fatigue."
 
-    st.success(feedback)
+  st.success(feedback)
+
+    # --- ML-Based Plan Adherence Score ---
+    from adherence_model import score_adherence
+
+    plan_sessions = {
+        "easy": selected_plan["session_types"].get("easy", 0),
+        "tempo": selected_plan["session_types"].get("tempo", 0),
+        "long_run": selected_plan["session_types"].get("long_run", 0),
+        "interval": selected_plan["session_types"].get("interval", 0)
+    }
+
+    actual_sessions = {t: 0 for t in ["easy", "tempo", "long_run", "interval"]}
+    detected_type = session_data["type"].lower().replace(" ", "_")
+    if detected_type in actual_sessions:
+        actual_sessions[detected_type] += 1
+
+    result = score_adherence(plan_sessions, actual_sessions)
+
+    st.subheader("📊 Plan Adherence Scoring")
+    st.metric("Score", f"{result['adherence_score']*100:.0f}%")
+    st.write(f"**Assessment:** {result['label'].capitalize()}")
+
+    st.caption(f"Planned → {result['plan_norm']}")
+    st.caption(f"Actual  → {result['actual_norm']}")
     st.markdown("---")
     st.caption("🚧 More advanced feedback with zones, HR, and fitness prediction coming soon.")
 # --- ML-Based Plan Adherence Score ---
