@@ -20,6 +20,11 @@ if "code" not in query_params:
 
 code = query_params["code"]
 token_data = exchange_code_for_token(code)
+
+if not token_data or "access_token" not in token_data:
+    st.error("❌ Failed to exchange code for token. Please reconnect to Strava.")
+    st.stop()
+
 access_token = token_data["access_token"]
 
 # --- FETCH & PROCESS STRAVA DATA ---
@@ -58,20 +63,16 @@ fitness_profile = {
 # --- PLAN DETECTION ---
 best_plan, best_week, match_score, next_weeks = detect_best_plan_and_week(fitness_profile, training_plans)
 
-if best_plan:
-    st.subheader("🧠 Recommended Training Plan")
-    st.markdown(f"**{best_plan['source']}** — Start in **Week {best_week}** (Match Score: `{match_score}`)")
-    st.caption("Based on your current fitness profile from the past week.")
-
-    # Display next 2 weeks
-    st.subheader("📅 Upcoming Sessions")
-    for i, week in enumerate(next_weeks):
-        st.markdown(f"**Week {best_week + i}**: {week}")
-else:
+if not best_plan:
     st.warning("Could not match your recent training to a known plan. Try again next week or check your data.")
     st.stop()
 
-# --- NEXT 2 WEEKS SUGGESTION ---
+# --- RECOMMENDED PLAN DISPLAY ---
+st.subheader("🧠 Recommended Training Plan")
+st.markdown(f"**{best_plan['source']}** — Start in **Week {best_week}** (Match Score: `{match_score}`)")
+st.caption("Based on your current fitness profile from the past week.")
+
+# --- UPCOMING TRAINING BLOCK ---
 st.subheader("📅 Upcoming Sessions")
 for i, week in enumerate(next_weeks):
     st.markdown(f"**Week {best_week + i}**: {week}")
