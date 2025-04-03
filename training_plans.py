@@ -1,43 +1,64 @@
+# training_plans.py
+
 training_plans = [
     {
-        "source": "Hal Higdon",
-        "level": "Intermediate",
-        "duration_weeks": 18,
-        "weekly_sessions_avg": 5,
+        "source": "Hal Higdon Beginner",
         "session_types": {
-            "easy": 2,
-            "tempo": 1,
+            "easy": 3,
+            "tempo": 0,
             "long_run": 1,
-            "pace_run": 1,
+            "interval": 0
         },
-        "long_run_max_km": 32,
-        "taper_weeks": 3,
-        "intensity_guidance": {
-            "easy": "65-75% max HR",
-            "tempo": "85-90% max HR",
-            "long": "70-80% max HR"
-        },
-        "notes": "Cutback week every 4th week. Long runs build progressively. Taper begins week 16."
+        "weeks": [
+            {"weekly_distance": 0,  "longest_run_km": 0,  "session_count": 0},  # Week 0
+            {"weekly_distance": 20, "longest_run_km": 6,  "session_count": 3},
+            {"weekly_distance": 24, "longest_run_km": 8,  "session_count": 3},
+            {"weekly_distance": 28, "longest_run_km": 10, "session_count": 4},
+            {"weekly_distance": 32, "longest_run_km": 12, "session_count": 4},
+            {"weekly_distance": 36, "longest_run_km": 14, "session_count": 4},
+            {"weekly_distance": 40, "longest_run_km": 16, "session_count": 4},
+            {"weekly_distance": 44, "longest_run_km": 18, "session_count": 4},
+            {"weekly_distance": 48, "longest_run_km": 20, "session_count": 4},
+        ]
     },
     {
-        "source": "Hansons",
-        "level": "Beginner",
-        "duration_weeks": 18,
-        "weekly_sessions_avg": 6,
+        "source": "Hansons Beginner",
         "session_types": {
             "easy": 3,
             "tempo": 1,
             "long_run": 1,
             "interval": 1
         },
-        "long_run_max_km": 26,
-        "taper_weeks": 2,
-        "intensity_guidance": {
-            "easy": "60-70% max HR",
-            "tempo": "88-92% max HR",
-            "interval": "95-100% max HR"
+        "weeks": [
+            {"weekly_distance": 0,  "longest_run_km": 0,  "session_count": 0},  # Week 0
+            {"weekly_distance": 30, "longest_run_km": 8,  "session_count": 4},
+            {"weekly_distance": 34, "longest_run_km": 10, "session_count": 5},
+            {"weekly_distance": 38, "longest_run_km": 12, "session_count": 5},
+            {"weekly_distance": 44, "longest_run_km": 14, "session_count": 5},
+            {"weekly_distance": 48, "longest_run_km": 16, "session_count": 5},
+            {"weekly_distance": 54, "longest_run_km": 18, "session_count": 6},
+            {"weekly_distance": 58, "longest_run_km": 20, "session_count": 6},
+            {"weekly_distance": 60, "longest_run_km": 22, "session_count": 6},
+        ]
+    },
+    {
+        "source": "Jack Daniels 2Q",
+        "session_types": {
+            "easy": 2,
+            "tempo": 1,
+            "long_run": 1,
+            "interval": 1
         },
-        "notes": "No run exceeds 16 miles. Emphasizes cumulative fatigue."
+        "weeks": [
+            {"weekly_distance": 0,  "longest_run_km": 0,  "session_count": 0},  # Week 0
+            {"weekly_distance": 40, "longest_run_km": 10, "session_count": 4},
+            {"weekly_distance": 46, "longest_run_km": 12, "session_count": 5},
+            {"weekly_distance": 52, "longest_run_km": 14, "session_count": 5},
+            {"weekly_distance": 60, "longest_run_km": 16, "session_count": 6},
+            {"weekly_distance": 65, "longest_run_km": 18, "session_count": 6},
+            {"weekly_distance": 70, "longest_run_km": 20, "session_count": 6},
+            {"weekly_distance": 75, "longest_run_km": 22, "session_count": 6},
+            {"weekly_distance": 80, "longest_run_km": 24, "session_count": 6},
+        ]
     }
-    # Add more plans here...
 ]
