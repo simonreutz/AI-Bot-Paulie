@@ -1,178 +1,100 @@
+# app.py - Marathon AI Coach (Universal Version)
 import streamlit as st
 from datetime import datetime
 import pandas as pd
-import requests
-from training_plans import training_plans  
-from adherence_scorer import predict_adherence
-from strava_auth import get_strava_auth_url, exchange_code_for_token
-from strava_api import get_recent_activities
-# ------------------------
-# OCR Microservice API Call
-# ------------------------
-def parse_ocr_image_with_api(image_file):
-    api_url = "https://YOUR-OCR-RENDER-URL.onrender.com/ocr"  # ⬅️ Replace with your deployed Render URL
-    files = {'image': image_file}
-    try:
-        response = requests.post(api_url, files=files)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error(f"OCR server error: {response.text}")
-            return None
-    except Exception as e:
-        st.error(f"Failed to connect to OCR server: {e}")
-        return None
+from training_plans import training_plans
+from adherence_model import score_adherence
+from strava_auth import display_strava_login, exchange_code_for_token
+from strava_api import fetch_recent_activities, format_activities
+from weekly_aggregator import aggregate_weekly_sessions
 
-# ------------------------
-# Streamlit UI
-# ------------------------
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
-st.title("🏃 Marathon AI Coach - MVP")
+st.title("🏃 Marathon AI Coach - Universal MVP")
 
-# --- Sidebar Config ---
-st.sidebar.header("🔗 Strava Connection")
-
-# Step 1: If not connected, show login button
-if "strava_token" not in st.session_state:
-    auth_url = get_strava_auth_url()
-    st.sidebar.markdown(f"[Connect with Strava]({auth_url})", unsafe_allow_html=True)
-
-# Step 2: After redirect from Strava, capture ?code=...
-query_params = st.experimental_get_query_params()
-if "code" in query_params and "strava_token" not in st.session_state:
-    with st.spinner("Connecting to Strava..."):
-        auth_code = query_params["code"][0]
-        token_data = exchange_code_for_token(auth_code)
-        if "access_token" in token_data:
-            st.session_state.strava_token = token_data["access_token"]
-            st.sidebar.success("✅ Connected to Strava")
-        else:
-            st.sidebar.error("❌ Strava auth failed.")
-elif "strava_token" in st.session_state:
-    st.sidebar.success("✅ Connected to Strava")
-if "strava_token" in st.session_state:
-    st.header("📥 Recent Strava Runs")
-    activities = get_recent_activities(st.session_state.strava_token)
-
-    if activities:
-        for a in activities:
-            st.markdown(f"**{a['date']} – {a['name']}**")
-            st.write(f"🛣 {a['distance_km']} km in {a['duration_min']} min, pace ≈ {round(a['duration_min'] / a['distance_km'], 2)} min/km")
-            st.caption(f"🧠 Interpreted as: {a['type']}")
-    else:
-        st.warning("No recent running activities found.")
-    activities = get_recent_activities(st.session_state.strava_token)
-
-    if activities:
-        for a in activities:
-            st.markdown(f"**{a['date']} – {a['name']}**")
-            st.write(f"🛣 {a['distance_km']} km in {a['duration_min']} min, pace ≈ {round(a['duration_min'] / a['distance_km'], 2)} min/km")
-            st.caption(f"🧠 Interpreted as: {a['type']}")
-    else:
-        st.warning("No recent running activities found.")
-st.sidebar.header("Training Setup")
+# --- TRAINING PLAN SETUP ---
 plan_names = [plan["source"] for plan in training_plans]
 selected_plan_name = st.sidebar.selectbox("Choose a Training Plan", plan_names)
 selected_plan = next(plan for plan in training_plans if plan["source"] == selected_plan_name)
 training_week = st.sidebar.number_input("Which week are you on?", min_value=1, max_value=24, value=1)
 
-# --- Main Section ---
-st.header("📋 Log Your Training Session")
-input_method = st.radio("Input method", ["Manual Entry", "Upload Screenshot"])
-
+# --- MODE TOGGLE ---
+input_mode = st.radio("Choose input method", ["Strava Connect", "Manual Entry"])
 session_data = None
 
-# --- Manual Entry ---
-if input_method == "Manual Entry":
+# --- STRAVA FLOW ---
+if input_mode == "Strava Connect":
+    query_params = st.experimental_get_query_params()
+    if "code" not in query_params:
+        display_strava_login()
+        st.stop()
+
+    code = query_params["code"][0]
+    token_data = exchange_code_for_token(code)
+    access_token = token_data["access_token"]
+
+    # --- FETCH & PROCESS STRAVA DATA ---
+    st.subheader("📈 Weekly Training Analysis from Strava")
+    activities = fetch_recent_activities(access_token)
+    formatted_runs = format_activities(activities)
+
+    if not formatted_runs:
+        st.warning("No recent Strava runs found. Do a workout and check back!")
+        st.stop()
+
+    st.write("**Detected Runs This Week:**", len(formatted_runs))
+    st.dataframe(pd.DataFrame(formatted_runs))
+
+    actual_sessions = aggregate_weekly_sessions(formatted_runs)
+
+else:
+    # --- MANUAL SESSION ENTRY ---
+    st.header("📋 Log Your Training Session")
     session_date = st.date_input("Date", value=datetime.today())
     distance_km = st.number_input("Distance (km)", step=0.1)
     duration_min = st.number_input("Duration (min)", step=1)
     avg_pace = st.text_input("Average Pace (min/km)")
-    run_type = st.selectbox("Type", ["Easy Run", "Interval", "Long Run", "Tempo", "Recovery"])
+    run_type = st.selectbox("Type", ["Easy Run", "Tempo", "Long Run", "Interval"])
     submit = st.button("Submit Training")
-    
+
     if submit:
         session_data = {
-            'date': str(session_date),
-            'distance_km': distance_km,
-            'duration_min': duration_min,
-            'avg_pace': avg_pace,
-            'type': run_type,
+            "date": str(session_date),
+            "distance_km": distance_km,
+            "duration_min": duration_min,
+            "avg_pace_min_per_km": float(avg_pace) if avg_pace else 5.5,
+            "pace_std": 0.2,
+            "type": run_type
         }
 
-# --- Screenshot Upload with OCR ---
-else:
-    uploaded_file = st.file_uploader("Upload Strava Screenshot", type=["png", "jpg", "jpeg"])
-    if uploaded_file:
-        st.image(uploaded_file, caption="Uploaded Screenshot", use_column_width=True)
-        session_data = parse_ocr_image_with_api(uploaded_file)
-        if session_data:
-            st.success("Parsed session data:")
-            st.json(session_data)
+    if session_data:
+        detected_type = run_type.lower().replace(" ", "_")
+        actual_sessions = {t: 0 for t in ["easy", "tempo", "long_run", "interval"]}
+        if detected_type in actual_sessions:
+            actual_sessions[detected_type] += 1
+    else:
+        actual_sessions = None
 
-# --- Feedback Logic ---
-if session_data:
-    expected = f"{selected_plan['weekly_sessions_avg']} sessions/week (e.g. {selected_plan['session_types']})"
-    actual = f"{session_data.get('distance_km', '?')}km {session_data.get('type', '?')} in {session_data.get('duration_min', '?')} min"
-
-    st.subheader("🔍 Training Plan Alignment")
-    st.write(f"**Week {training_week} - {selected_plan_name}**")
-    st.markdown(f"**Planned:** {expected}")
-    st.markdown(f"**Your Session:** {actual}")
-
-    st.subheader("🤖 AI Coach Feedback")
-    feedback = "Looks good! Keep consistency." if "Easy" in session_data.get('type', '') else "Nice work — make sure to alternate intensity."
-    if session_data.get('distance_km') and session_data['distance_km'] < 8:
-        feedback += " Consider increasing long run distance gradually."
-    elif session_data.get('distance_km') and session_data['distance_km'] > 15:
-        feedback += " Great endurance! Monitor fatigue."
-
-  st.success(feedback)
-
-    # --- ML-Based Plan Adherence Score ---
-    from adherence_model import score_adherence
-
-    plan_sessions = {
-        "easy": selected_plan["session_types"].get("easy", 0),
-        "tempo": selected_plan["session_types"].get("tempo", 0),
-        "long_run": selected_plan["session_types"].get("long_run", 0),
-        "interval": selected_plan["session_types"].get("interval", 0)
-    }
-
-    actual_sessions = {t: 0 for t in ["easy", "tempo", "long_run", "interval"]}
-    detected_type = session_data["type"].lower().replace(" ", "_")
-    if detected_type in actual_sessions:
-        actual_sessions[detected_type] += 1
-
+# --- SCORING BLOCK ---
+if actual_sessions:
+    st.subheader("📊 Weekly Plan Adherence")
+    plan_sessions = selected_plan["session_types"]
     result = score_adherence(plan_sessions, actual_sessions)
 
-    st.subheader("📊 Plan Adherence Scoring")
     st.metric("Score", f"{result['adherence_score']*100:.0f}%")
     st.write(f"**Assessment:** {result['label'].capitalize()}")
-
     st.caption(f"Planned → {result['plan_norm']}")
     st.caption(f"Actual  → {result['actual_norm']}")
     st.markdown("---")
-    st.caption("🚧 More advanced feedback with zones, HR, and fitness prediction coming soon.")
-# --- ML-Based Plan Adherence Score ---
-if isinstance(session_data, dict):
-    actual_summary = {
-        "sessions_completed": 1,  # Future: count full week
-        "tempo_done": 1 if "tempo" in session_data.get("type", "").lower() else 0,
-        "longest_run_km": session_data.get("distance_km", 0),
-    }
 
-    score = predict_adherence(selected_plan, actual_summary)
-
-    st.subheader("📊 Plan Adherence Score")
-    st.metric(label="This Week", value=f"{score} %")
-
-    if score < 60:
-        st.warning("You're falling off the plan. Try to stick to your key sessions.")
-    elif score < 80:
-        st.info("Decent effort! Aim to hit long runs and tempo sessions.")
-    else:
-        st.success("Great job following the plan!")
-
+    st.subheader("🤖 AI Coach Feedback")
+    if input_mode == "Manual Entry" and session_data:
+        feedback = "Solid run! Keep your effort steady." if "easy" in detected_type else "Good effort — keep variety in your training."
+        if session_data.get("distance_km") and session_data["distance_km"] < 8:
+            feedback += " Consider adding distance for endurance."
+        elif session_data.get("distance_km") and session_data["distance_km"] > 15:
+            feedback += " Strong volume — manage recovery well."
+        st.success(feedback)
 else:
-    st.info("No valid session data available to calculate adherence.")
+    st.info("Submit a session or connect to Strava to get feedback.")
+
+st.caption("🚧 Plan detection & nutrition engine coming soon.")
