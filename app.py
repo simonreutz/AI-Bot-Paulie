@@ -70,6 +70,11 @@ if not best_plan:
 # --- RECOMMENDED PLAN DISPLAY ---
 st.subheader("🧠 Recommended Training Plan")
 st.markdown(f"**{best_plan['source']}** — Start in **Week {best_week}** (Match Score: `{match_score}`)")
+# Contextual description for Week 0 or very low fitness
+if best_week == 1 and fitness_profile["weekly_distance"] < 5:
+    st.info("This week seems to be a **rest or recovery phase**. Week 0 is a great time to rebuild base fitness or return after injury.")
+elif best_week == 1:
+    st.info("🏁 You're at the **start of a structured training plan**. Let’s build up gradually from here!")
 st.caption("Based on your current fitness profile from the past week.")
 
 # --- UPCOMING TRAINING BLOCK ---
