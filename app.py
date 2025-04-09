@@ -8,6 +8,7 @@ from strava_api import fetch_recent_activities, format_activities
 from weekly_aggregator import aggregate_weekly_sessions
 from plan_detector import detect_best_plan_and_week
 from nutrition_tips import tips as nutrition_tips
+from progress_tracker import log_week_result, load_all_logs
 
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach – Smart Plan Detection MVP")
@@ -118,6 +119,15 @@ if actual_sessions.get("interval", 0) == 0 and plan_sessions.get("interval", 0) 
 
 st.success(feedback)
 
+# --- LOG WEEKLY RESULT ---
+log_week_result(
+    best_plan["source"],
+    best_week,
+    result["adherence_score"],
+    result["plan_norm"],
+    result["actual_norm"]
+)
+
 # --- NUTRITION TIPS ---
 st.subheader("🍝 Nutrition Tips for Upcoming Key Sessions")
 
@@ -133,3 +143,19 @@ for session_type, count in upcoming_counts.items():
         st.markdown(f"### {session_type.replace('_', ' ').title()} ({count}x)")
         st.markdown(f"- **Before**: {nutrition_tips[session_type]['pre']}")
         st.markdown(f"- **After**: {nutrition_tips[session_type]['post']}")
+
+# --- WEEKLY HISTORY VISUALIZATION ---
+st.subheader("📈 Your Weekly Progress")
+
+logs = load_all_logs()
+if logs:
+    df = pd.DataFrame(logs)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["week_label"] = df["plan"] + " - W" + df["week"].astype(str)
+
+    st.line_chart(df.set_index("timestamp")["score"])
+
+    st.dataframe(df[["timestamp", "plan", "week", "score"]].sort_values("timestamp", ascending=False))
+else:
+    st.info("No weekly history yet. Complete at least one week to begin tracking.")
+
