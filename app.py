@@ -170,3 +170,28 @@ if logs:
     st.dataframe(df[["timestamp", "plan", "week", "score"]].sort_values("timestamp", ascending=False))
 else:
     st.info("No weekly history yet. Complete at least one week to begin tracking.")
+
+# --- WEEKLY HISTORY VISUALIZATION ---
+st.subheader("📈 Your Weekly Progress")
+
+logs = load_user_logs(user_id)
+if logs:
+    df = pd.DataFrame(logs)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df.sort_values("timestamp")
+    df["week"] = df["week"].astype(int)
+    df["score"] = df["score"].astype(float)
+    df["week_label"] = df["plan"] + " - W" + df["week"].astype(str)
+
+    st.line_chart(df.set_index("timestamp")["score"])
+
+    # Optional: show a table of plan/week/score history
+    st.markdown("### 📅 Weekly Plan History")
+    st.dataframe(df[["timestamp", "plan", "week", "score"]].sort_values("timestamp", ascending=False))
+
+    # Optional: flag weeks below 60%
+    low_weeks = df[df["score"] < 0.6]
+    if len(low_weeks) >= 2:
+        st.warning(f"⚠️ You've had {len(low_weeks)} weeks below 60% adherence. Consider repeating a base week or lowering intensity.")
+else:
+    st.info("No weekly history yet. Complete at least one week to begin tracking.")
