@@ -27,7 +27,9 @@ if not token_data or "access_token" not in token_data:
     st.error("❌ Failed to exchange code for token. Please reconnect to Strava.")
     st.stop()
 
+token_data = exchange_code_for_token(code)
 access_token = token_data["access_token"]
+user_id = token_data["athlete"]["id"]
 
 # --- FETCH & PROCESS STRAVA DATA ---
 st.subheader("📈 Weekly Training Analysis from Strava")
