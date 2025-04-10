@@ -70,7 +70,7 @@ best_plan, best_week, match_score, next_weeks = detect_best_plan_and_week(
     training_plans,
     user_id=user_id
 )
-
+st.caption(f"Adaptive logic applied using your recent performance. Current plan: {best_plan['source']}, Week: {best_week}")
 if not best_plan:
     st.warning("Could not match your recent training to a known plan. Try again next week or check your data.")
     st.stop()
