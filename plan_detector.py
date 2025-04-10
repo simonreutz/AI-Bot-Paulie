@@ -1,6 +1,20 @@
 # plan_detector.py
 from sheets_logger import load_user_logs
 
+def analyze_adherence_trend(logs_for_plan):
+    # Sort logs by date
+    sorted_logs = sorted(logs_for_plan, key=lambda x: x["timestamp"])
+    last_logs = sorted_logs[-3:]  # use last 2–3 weeks
+
+    scores = [float(log["score"]) for log in last_logs]
+    last_week = int(last_logs[-1]["week"])
+
+    if len(scores) >= 2 and all(s >= 0.85 for s in scores[-2:]):
+        return last_week + 2
+    elif len(scores) >= 2 and all(s < 0.6 for s in scores[-2:]):
+        return max(1, last_week - 1)
+    else:
+        return last_week
 def compute_similarity(user_profile, plan_week):
     return round(1 / (
         1 +
