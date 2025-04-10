@@ -48,12 +48,7 @@ def detect_best_plan_and_week(user_profile, training_plans, user_id=None):
             last_week = int(last_entry["week"])
             last_score = float(last_entry["score"])
 
-            if last_score >= 0.85:
-                best_week = last_week + 1
-            elif last_score < 0.6 and last_week > 1:
-                best_week = last_week - 1
-            else:
-                best_week = last_week  # repeat current week
+     best_week = analyze_adherence_trend(user_logs_for_plan)
 
     # Step 3: Next 2 weeks of content
     next_weeks = best_plan["weeks"][best_week - 1:best_week + 1]
