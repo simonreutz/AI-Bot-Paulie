@@ -65,7 +65,11 @@ fitness_profile = {
 }
 
 # --- PLAN DETECTION ---
-best_plan, best_week, match_score, next_weeks = detect_best_plan_and_week(fitness_profile, training_plans)
+best_plan, best_week, match_score, next_weeks = detect_best_plan_and_week(
+    fitness_profile,
+    training_plans,
+    user_id=user_id
+)
 
 if not best_plan:
     st.warning("Could not match your recent training to a known plan. Try again next week or check your data.")
