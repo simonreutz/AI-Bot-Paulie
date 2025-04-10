@@ -34,7 +34,7 @@ def log_week_result(user_id, plan_name, week_num, score, plan_norm, actual_norm)
     except Exception as e:
         st.error("❌ Failed to log to Google Sheets.")
         st.exception(e)
-def load_all_logs():
+def load_user_logs(user_id):
     sheet = connect_to_sheet()
     records = sheet.get_all_records()
-    return records
+    return [r for r in records if str(r["user_id"]) == str(user_id)]
