@@ -9,7 +9,7 @@ from weekly_aggregator import aggregate_weekly_sessions
 from plan_detector import detect_best_plan_and_week
 from nutrition_tips import tips as nutrition_tips
 from progress_tracker import log_week_result, load_all_logs
-from sheets_logger import log_week_result, load_all_logs
+from sheets_logger import log_week_result, load_user_logs
 
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach – Smart Plan Detection MVP")
@@ -151,7 +151,7 @@ for session_type, count in upcoming_counts.items():
 # --- WEEKLY HISTORY VISUALIZATION ---
 st.subheader("📈 Your Weekly Progress")
 
-logs = load_all_logs()
+logs = load_user_logs(user_id)
 if logs:
     df = pd.DataFrame(logs)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
