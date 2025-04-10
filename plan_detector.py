@@ -1,4 +1,3 @@
-# plan_detector.py
 from sheets_logger import load_user_logs
 
 def analyze_adherence_trend(logs_for_plan):
@@ -15,6 +14,7 @@ def analyze_adherence_trend(logs_for_plan):
         return max(1, last_week - 1)
     else:
         return last_week
+
 def compute_similarity(user_profile, plan_week):
     return round(1 / (
         1 +
@@ -44,11 +44,7 @@ def detect_best_plan_and_week(user_profile, training_plans, user_id=None):
         logs = load_user_logs(user_id)
         user_logs_for_plan = [l for l in logs if l["plan"] == best_plan["source"]]
         if user_logs_for_plan:
-            last_entry = user_logs_for_plan[-1]
-            last_week = int(last_entry["week"])
-            last_score = float(last_entry["score"])
-
-     best_week = analyze_adherence_trend(user_logs_for_plan)
+            best_week = analyze_adherence_trend(user_logs_for_plan)
 
     # Step 3: Next 2 weeks of content
     next_weeks = best_plan["weeks"][best_week - 1:best_week + 1]
