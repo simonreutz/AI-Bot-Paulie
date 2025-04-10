@@ -8,8 +8,7 @@ from strava_api import fetch_recent_activities, format_activities
 from weekly_aggregator import aggregate_weekly_sessions
 from plan_detector import detect_best_plan_and_week
 from nutrition_tips import tips as nutrition_tips
-from progress_tracker import log_week_result, load_all_logs
-from sheets_logger import log_week_result, load_user_logs
+from sheets_logger import log_week_result, load_user_logs  # ✅ fixed
 
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach – Smart Plan Detection MVP")
@@ -21,12 +20,6 @@ if "code" not in query_params:
     st.stop()
 
 code = query_params["code"]
-token_data = exchange_code_for_token(code)
-
-if not token_data or "access_token" not in token_data:
-    st.error("❌ Failed to exchange code for token. Please reconnect to Strava.")
-    st.stop()
-
 token_data = exchange_code_for_token(code)
 
 # ✅ Handle token failure
@@ -75,21 +68,25 @@ fitness_profile = {
 best_plan, best_week, match_score, next_weeks = detect_best_plan_and_week(
     fitness_profile,
     training_plans,
-    user_id=user_id
+    user_id=user_id  # ✅ pass user ID
 )
-st.caption(f"Adaptive logic applied using your recent performance. Current plan: {best_plan['source']}, Week: {best_week}")
+
 if not best_plan:
     st.warning("Could not match your recent training to a known plan. Try again next week or check your data.")
     st.stop()
 
+st.caption(f"Adaptive logic applied using your recent performance. Current plan: {best_plan['source']}, Week: {best_week}")
+
 # --- RECOMMENDED PLAN DISPLAY ---
 st.subheader("🧠 Recommended Training Plan")
 st.markdown(f"**{best_plan['source']}** — Start in **Week {best_week}** (Match Score: `{match_score}`)")
+
 # Contextual description for Week 0 or very low fitness
 if best_week == 1 and fitness_profile["weekly_distance"] < 5:
     st.info("This week seems to be a **rest or recovery phase**. Week 0 is a great time to rebuild base fitness or return after injury.")
 elif best_week == 1:
     st.info("🏁 You're at the **start of a structured training plan**. Let’s build up gradually from here!")
+
 st.caption("Based on your current fitness profile from the past week.")
 
 # --- UPCOMING TRAINING BLOCK ---
@@ -136,6 +133,7 @@ st.success(feedback)
 # --- LOG WEEKLY RESULT ---
 st.write("📤 Logging to sheet:", best_plan["source"], best_week, result["adherence_score"])
 log_week_result(
+    user_id,  # ✅ include user ID
     best_plan["source"],
     best_week,
     result["adherence_score"],
@@ -169,8 +167,6 @@ if logs:
     df["week_label"] = df["plan"] + " - W" + df["week"].astype(str)
 
     st.line_chart(df.set_index("timestamp")["score"])
-
     st.dataframe(df[["timestamp", "plan", "week", "score"]].sort_values("timestamp", ascending=False))
 else:
     st.info("No weekly history yet. Complete at least one week to begin tracking.")
-
