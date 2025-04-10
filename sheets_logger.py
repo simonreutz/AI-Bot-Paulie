@@ -18,16 +18,21 @@ def connect_to_sheet():
     return client.open("MarathonLog").worksheet("weekly_log")
 
 def log_week_result(plan_name, week_num, score, plan_norm, actual_norm):
-    sheet = connect_to_sheet()
-    row = [
-        datetime.utcnow().isoformat(),
-        plan_name,
-        week_num,
-        round(score, 2),
-        json.dumps(plan_norm),
-        json.dumps(actual_norm)
-    ]
-    sheet.append_row(row)
+    try:
+        sheet = connect_to_sheet()
+        row = [
+            datetime.utcnow().isoformat(),
+            plan_name,
+            week_num,
+            round(score, 2),
+            json.dumps(plan_norm),
+            json.dumps(actual_norm)
+        ]
+        sheet.append_row(row)
+        print("✅ Row written to Google Sheet:", row)
+    except Exception as e:
+        print("❌ Failed to write to Google Sheet:", e)
+        st.error("Google Sheets logging failed. See console.")
 
 def load_all_logs():
     sheet = connect_to_sheet()
