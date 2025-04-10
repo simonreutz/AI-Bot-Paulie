@@ -120,6 +120,7 @@ if actual_sessions.get("interval", 0) == 0 and plan_sessions.get("interval", 0) 
 st.success(feedback)
 
 # --- LOG WEEKLY RESULT ---
+st.write("📤 Logging to sheet:", best_plan["source"], best_week, result["adherence_score"])
 log_week_result(
     best_plan["source"],
     best_week,
