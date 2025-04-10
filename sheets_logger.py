@@ -17,11 +17,12 @@ def connect_to_sheet():
     client = gspread.authorize(creds)
     return client.open("MarathonLog").worksheet("weekly_log")
 
-def log_week_result(plan_name, week_num, score, plan_norm, actual_norm):
+def log_week_result(user_id, plan_name, week_num, score, plan_norm, actual_norm):
     try:
         sheet = connect_to_sheet()
         row = [
             datetime.utcnow().isoformat(),
+            str(user_id),
             plan_name,
             week_num,
             round(score, 2),
@@ -30,9 +31,8 @@ def log_week_result(plan_name, week_num, score, plan_norm, actual_norm):
         ]
         sheet.append_row(row)
         st.success("✅ Logged to Google Sheets!")
-        st.write("Logged row:", row)
     except Exception as e:
-        st.error("❌ Failed to write to Google Sheet")
+        st.error("❌ Failed to log to Google Sheets.")
         st.exception(e)
 def load_all_logs():
     sheet = connect_to_sheet()
