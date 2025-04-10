@@ -29,11 +29,11 @@ def log_week_result(plan_name, week_num, score, plan_norm, actual_norm):
             json.dumps(actual_norm)
         ]
         sheet.append_row(row)
-        print("✅ Row written to Google Sheet:", row)
+        st.success("✅ Logged to Google Sheets!")
+        st.write("Logged row:", row)
     except Exception as e:
-        print("❌ Failed to write to Google Sheet:", e)
-        st.error("Google Sheets logging failed. See console.")
-
+        st.error("❌ Failed to write to Google Sheet")
+        st.exception(e)
 def load_all_logs():
     sheet = connect_to_sheet()
     records = sheet.get_all_records()
