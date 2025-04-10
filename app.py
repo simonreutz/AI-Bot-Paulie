@@ -9,6 +9,7 @@ from weekly_aggregator import aggregate_weekly_sessions
 from plan_detector import detect_best_plan_and_week
 from nutrition_tips import tips as nutrition_tips
 from progress_tracker import log_week_result, load_all_logs
+from sheets_logger import log_week_result, load_all_logs
 
 st.set_page_config(page_title="Marathon AI Coach", layout="centered")
 st.title("🏃 Marathon AI Coach – Smart Plan Detection MVP")
