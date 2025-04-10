@@ -28,6 +28,13 @@ if not token_data or "access_token" not in token_data:
     st.stop()
 
 token_data = exchange_code_for_token(code)
+token_data = exchange_code_for_token(code)
+
+# ✅ Check if token exchange succeeded
+if not token_data or "access_token" not in token_data:
+    st.error("❌ Could not authenticate with Strava. Please reconnect.")
+    st.stop()
+
 access_token = token_data["access_token"]
 user_id = token_data["athlete"]["id"]
 
